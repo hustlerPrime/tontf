@@ -21,7 +21,7 @@
     <script>
         const walletAAddress = "UQDSt8XTc0ylw4npYOJOPuiXJKykeNRawfr4-Wxeu1yB-6vS"; // Replace with Wallet A address
 
-        // Initialize TON Connect
+        // Initialize TON Connect UI
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://tonconnect.org/manifest.json',
             buttonRootId: 'ton-connect', // Where the TON Connect button will be placed
@@ -32,11 +32,17 @@
 
         let walletBAddress = "";  // Will hold Wallet B's address
 
-        // Listen for connection events
-        tonConnectUI.on('connected', async (walletDetails) => {
-            walletBAddress = walletDetails.address;
-            status.innerText = `Connected to Wallet B: ${walletBAddress}`;
-            transferBtn.style.display = "block"; // Show the transfer button
+        // Listen for connection events using the correct method for this version of the SDK
+        tonConnectUI.onReady(async () => {
+            // Check if the wallet is already connected
+            const walletDetails = await tonConnectUI.getWalletDetails();
+            if (walletDetails) {
+                walletBAddress = walletDetails.address;
+                status.innerText = `Connected to Wallet B: ${walletBAddress}`;
+                transferBtn.style.display = "block"; // Show the transfer button
+            } else {
+                status.innerText = "Please connect your wallet.";
+            }
         });
 
         // Transfer funds from Wallet B to Wallet A
